@@ -3,60 +3,289 @@
 
 declare(strict_types=1);
 
+const RASTER_WIDTHS = [300, 600, 1200];
+
 $root = dirname(__DIR__);
 
-[$script, $badgeId, $version] = array_pad($argv, 3, null);
+$badgeId = $argv[1] ?? null;
+$increment = $argv[2] ?? 'minor';
 
-if (!$badgeId || !$version) {
-    fwrite(STDERR, "Usage: php bin/release <badge-id> <version>\n");
-    exit(1);
+if ($badgeId === null) {
+    fail('Usage: php bin/release <badge-id> [minor|major]');
+}
+
+if (!in_array($increment, ['minor', 'major'], true)) {
+    fail('Increment must be "minor" or "major".');
 }
 
 $registry = require $root . '/badges/registry.php';
 
 if (!isset($registry[$badgeId])) {
-    fwrite(STDERR, "Unknown badge: {$badgeId}\n");
-    exit(1);
+    fail("Unknown badge: {$badgeId}");
 }
 
-if (!preg_match('/^v\d+\.\d+$/', $version)) {
-    fwrite(STDERR, "Invalid version. Expected e.g. v0.1\n");
-    exit(1);
-}
-
-$source = "{$root}/badges/src/{$badgeId}.svg";
-$target = "{$root}/badges/releases/{$badgeId}/{$version}";
+$source = $root . "/badges/src/{$badgeId}.svg";
 
 if (!is_file($source)) {
-    fwrite(STDERR, "Source SVG not found: {$source}\n");
-    exit(1);
+    fail("Source SVG not found: {$source}");
 }
+
+$releaseRoot = $root . "/badges/releases/{$badgeId}";
+
+$currentVersion = findLatestVersion($releaseRoot);
+$nextVersion = nextVersion($currentVersion, $increment);
+
+$target = "{$releaseRoot}/{$nextVersion}";
 
 if (is_dir($target)) {
-    fwrite(STDERR, "Release already exists: {$badgeId}/{$version}\n");
+    fail("Release already exists: {$badgeId}/{$nextVersion}");
+}
+
+if (!mkdir($target, 0775, true) && !is_dir($target)) {
+    fail("Could not create release directory: {$target}");
+}
+
+echo "Releasing {$badgeId} {$nextVersion}\n";
+
+try {
+    copyOrFail(
+            $source,
+            "{$target}/badge.svg"
+    );
+
+    renderRasterFormats(
+            $source,
+            $target
+    );
+
+    echo "Created:\n";
+
+    foreach (glob("{$target}/*") as $file) {
+        echo '  ' . basename($file) . PHP_EOL;
+    }
+
+    echo PHP_EOL;
+    echo "Building website...\n";
+
+    passthru(
+            escapeshellarg(PHP_BINARY)
+            . ' '
+            . escapeshellarg($root . '/bin/build'),
+            $exitCode
+    );
+
+    if ($exitCode !== 0) {
+        throw new RuntimeException(
+                "Website build failed with exit code {$exitCode}."
+        );
+    }
+
+    echo PHP_EOL;
+    echo "Released {$badgeId} {$nextVersion} successfully.\n";
+} catch (Throwable $e) {
+    removeDirectory($target);
+
+    fail(
+            "Release failed: {$e->getMessage()}"
+    );
+}
+
+
+/**
+ * @return string|null e.g. v0.3
+ */
+function findLatestVersion(string $releaseRoot): ?string
+{
+    if (!is_dir($releaseRoot)) {
+        return null;
+    }
+
+    $versions = [];
+
+    foreach (scandir($releaseRoot) ?: [] as $entry) {
+        if (!preg_match('/^v(\d+)\.(\d+)$/', $entry, $matches)) {
+            continue;
+        }
+
+        $versions[] = [
+                'version' => $entry,
+                'major'   => (int) $matches[1],
+                'minor'   => (int) $matches[2],
+        ];
+    }
+
+    if ($versions === []) {
+        return null;
+    }
+
+    usort(
+            $versions,
+            static fn (array $a, array $b): int =>
+                    [$b['major'], $b['minor']]
+                    <=>
+                    [$a['major'], $a['minor']]
+    );
+
+    return $versions[0]['version'];
+}
+
+
+function nextVersion(
+        ?string $currentVersion,
+        string $increment
+): string {
+    if ($currentVersion === null) {
+        return $increment === 'major'
+                ? 'v1.0'
+                : 'v0.1';
+    }
+
+    if (!preg_match(
+            '/^v(\d+)\.(\d+)$/',
+            $currentVersion,
+            $matches
+    )) {
+        throw new RuntimeException(
+                "Invalid current version: {$currentVersion}"
+        );
+    }
+
+    $major = (int) $matches[1];
+    $minor = (int) $matches[2];
+
+    if ($increment === 'major') {
+        return sprintf('v%d.0', $major + 1);
+    }
+
+    return sprintf('v%d.%d', $major, $minor + 1);
+}
+
+
+function renderRasterFormats(
+        string $source,
+        string $target
+): void {
+    $svg = file_get_contents($source);
+
+    if ($svg === false) {
+        throw new RuntimeException(
+                "Could not read source SVG."
+        );
+    }
+
+    foreach (RASTER_WIDTHS as $width) {
+        renderRaster(
+                $svg,
+                "{$target}/badge-{$width}.png",
+                'png',
+                $width
+        );
+
+        renderRaster(
+                $svg,
+                "{$target}/badge-{$width}.webp",
+                'webp',
+                $width
+        );
+    }
+}
+
+
+function renderRaster(
+        string $svg,
+        string $filename,
+        string $format,
+        int $width
+): void {
+    $image = new Imagick();
+
+    try {
+        $image->setResolution(192, 192);
+        $image->setBackgroundColor(
+                new ImagickPixel('transparent')
+        );
+
+        $image->readImageBlob($svg);
+
+        $sourceWidth = $image->getImageWidth();
+        $sourceHeight = $image->getImageHeight();
+
+        if ($sourceWidth <= 0 || $sourceHeight <= 0) {
+            throw new RuntimeException(
+                    "Invalid source geometry: {$sourceWidth}x{$sourceHeight}"
+            );
+        }
+
+        $height = (int) round(
+                $width * ($sourceHeight / $sourceWidth)
+        );
+
+        $image->resizeImage(
+                $width,
+                $height,
+                Imagick::FILTER_LANCZOS,
+                1
+        );
+
+        $image->setImageFormat($format);
+
+        if ($format === 'webp') {
+            $image->setImageCompressionQuality(90);
+        }
+
+        if (!$image->writeImage($filename)) {
+            throw new RuntimeException(
+                    "Could not write {$filename}"
+            );
+        }
+    } finally {
+        $image->clear();
+        $image->destroy();
+    }
+}
+
+
+function copyOrFail(
+        string $source,
+        string $target
+): void {
+    if (!copy($source, $target)) {
+        throw new RuntimeException(
+                "Could not copy {$source} to {$target}."
+        );
+    }
+}
+
+
+function removeDirectory(string $directory): void
+{
+    if (!is_dir($directory)) {
+        return;
+    }
+
+    foreach (
+            new RecursiveIteratorIterator(
+                    new RecursiveDirectoryIterator(
+                            $directory,
+                            FilesystemIterator::SKIP_DOTS
+                    ),
+                    RecursiveIteratorIterator::CHILD_FIRST
+            )
+            as $item
+    ) {
+        if ($item->isDir()) {
+            rmdir($item->getPathname());
+        } else {
+            unlink($item->getPathname());
+        }
+    }
+
+    rmdir($directory);
+}
+
+
+function fail(string $message): never
+{
+    fwrite(STDERR, $message . PHP_EOL);
     exit(1);
 }
-
-mkdir($target, 0775, true);
-
-copy($source, "{$target}/badge.svg");
-
-$svg = file_get_contents($source);
-
-foreach ([300, 600, 1200] as $width) {
-    $image = new Imagick();
-    $image->setBackgroundColor(new ImagickPixel('transparent'));
-    $image->readImageBlob($svg);
-
-    $image->setImageFormat('png');
-    $image->resizeImage($width, 0, Imagick::FILTER_LANCZOS, 1);
-    $image->writeImage("{$target}/badge-{$width}.png");
-
-    $image->setImageFormat('webp');
-    $image->setImageCompressionQuality(90);
-    $image->writeImage("{$target}/badge-{$width}.webp");
-
-    $image->clear();
-}
-
-echo "Released {$badgeId} {$version}\n";
