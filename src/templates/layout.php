@@ -19,6 +19,7 @@
     <nav>
         <a href="#badges">Badges</a>
         <a href="#about">Über das Projekt</a>
+        <a href="#howto">Benutzung</a>
     </nav>
 </header>
 

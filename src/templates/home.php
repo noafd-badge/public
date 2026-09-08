@@ -90,3 +90,18 @@
         hat keinerlei technische Verbindung zu unserer Infrastruktur.
     </p>
 </section>
+
+
+<section class="about" id="howto">
+    <p class="eyebrow">Benutzung</p>
+
+    <h2>
+        Einfach Haltung zeigen.
+    </h2>
+
+    <p>
+        Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam
+        nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat,
+        sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.
+    </p>
+</section>
