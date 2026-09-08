@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 220">
+    <rect width="720" height="220" rx="20" fill="#E04200"/>
+
+    <text x="360" y="92"
+          text-anchor="middle"
+          font-family="DejaVu Sans, sans-serif"
+          font-size="44"
+          font-weight="700"
+          fill="#111111">DEMOKRATIE</text>
+
+    <text x="360" y="154"
+          text-anchor="middle"
+          font-family="DejaVu Sans, sans-serif"
+          font-size="35"
+          font-weight="500"
+          fill="#111111">statt AfD.</text>
+</svg>

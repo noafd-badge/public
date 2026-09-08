@@ -1,0 +1,62 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+$root = dirname(__DIR__);
+
+[$script, $badgeId, $version] = array_pad($argv, 3, null);
+
+if (!$badgeId || !$version) {
+    fwrite(STDERR, "Usage: php bin/release <badge-id> <version>\n");
+    exit(1);
+}
+
+$registry = require $root . '/badges/registry.php';
+
+if (!isset($registry[$badgeId])) {
+    fwrite(STDERR, "Unknown badge: {$badgeId}\n");
+    exit(1);
+}
+
+if (!preg_match('/^v\d+\.\d+$/', $version)) {
+    fwrite(STDERR, "Invalid version. Expected e.g. v0.1\n");
+    exit(1);
+}
+
+$source = "{$root}/badges/src/{$badgeId}.svg";
+$target = "{$root}/badges/releases/{$badgeId}/{$version}";
+
+if (!is_file($source)) {
+    fwrite(STDERR, "Source SVG not found: {$source}\n");
+    exit(1);
+}
+
+if (is_dir($target)) {
+    fwrite(STDERR, "Release already exists: {$badgeId}/{$version}\n");
+    exit(1);
+}
+
+mkdir($target, 0775, true);
+
+copy($source, "{$target}/badge.svg");
+
+$svg = file_get_contents($source);
+
+foreach ([300, 600, 1200] as $width) {
+    $image = new Imagick();
+    $image->setBackgroundColor(new ImagickPixel('transparent'));
+    $image->readImageBlob($svg);
+
+    $image->setImageFormat('png');
+    $image->resizeImage($width, 0, Imagick::FILTER_LANCZOS, 1);
+    $image->writeImage("{$target}/badge-{$width}.png");
+
+    $image->setImageFormat('webp');
+    $image->setImageCompressionQuality(90);
+    $image->writeImage("{$target}/badge-{$width}.webp");
+
+    $image->clear();
+}
+
+echo "Released {$badgeId} {$version}\n";

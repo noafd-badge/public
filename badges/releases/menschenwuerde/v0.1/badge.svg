@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 220">
+    <rect width="720" height="220" rx="20" fill="#F5F2EC"/>
+
+    <text x="42" y="92"
+          font-family="DejaVu Sans, sans-serif"
+          font-size="46"
+          font-weight="700"
+          fill="#111111">Menschenwürde.</text>
+
+    <text x="42" y="156"
+          font-family="DejaVu Sans, sans-serif"
+          font-size="46"
+          font-weight="700"
+          fill="#E04200">Keine AfD.</text>
+</svg>

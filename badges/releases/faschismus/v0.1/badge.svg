@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 220">
+    <rect width="860" height="220" rx="20" fill="#0A0A0A"/>
+    <rect x="10" y="10" width="840" height="200" rx="14"
+          fill="none" stroke="#E04200" stroke-width="4"/>
+
+    <text x="430" y="94"
+          text-anchor="middle"
+          font-family="DejaVu Sans, sans-serif"
+          font-size="40"
+          font-weight="700"
+          fill="#FFFFFF">GEMEINSAM</text>
+
+    <text x="430" y="152"
+          text-anchor="middle"
+          font-family="DejaVu Sans, sans-serif"
+          font-size="40"
+          font-weight="700"
+          fill="#E04200">GEGEN FASCHISMUS</text>
+</svg>
