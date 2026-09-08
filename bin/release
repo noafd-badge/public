@@ -7,6 +7,12 @@ const RASTER_WIDTHS = [300, 600, 1200];
 
 $root = dirname(__DIR__);
 
+require_once $root . '/src/Release/ReleaseRepository.php';
+
+$releases = new ReleaseRepository(
+        $root . '/badges/releases'
+);
+
 $badgeId = $argv[1] ?? null;
 $increment = $argv[2] ?? 'minor';
 
@@ -30,12 +36,15 @@ if (!is_file($source)) {
     fail("Source SVG not found: {$source}");
 }
 
-$releaseRoot = $root . "/badges/releases/{$badgeId}";
+$nextVersion = $releases->next(
+        $badgeId,
+        $increment
+);
 
-$currentVersion = findLatestVersion($releaseRoot);
-$nextVersion = nextVersion($currentVersion, $increment);
-
-$target = "{$releaseRoot}/{$nextVersion}";
+$target = $releases->path(
+        $badgeId,
+        $nextVersion
+);
 
 if (is_dir($target)) {
     fail("Release already exists: {$badgeId}/{$nextVersion}");
@@ -88,76 +97,6 @@ try {
     fail(
             "Release failed: {$e->getMessage()}"
     );
-}
-
-
-/**
- * @return string|null e.g. v0.3
- */
-function findLatestVersion(string $releaseRoot): ?string
-{
-    if (!is_dir($releaseRoot)) {
-        return null;
-    }
-
-    $versions = [];
-
-    foreach (scandir($releaseRoot) ?: [] as $entry) {
-        if (!preg_match('/^v(\d+)\.(\d+)$/', $entry, $matches)) {
-            continue;
-        }
-
-        $versions[] = [
-                'version' => $entry,
-                'major'   => (int) $matches[1],
-                'minor'   => (int) $matches[2],
-        ];
-    }
-
-    if ($versions === []) {
-        return null;
-    }
-
-    usort(
-            $versions,
-            static fn (array $a, array $b): int =>
-                    [$b['major'], $b['minor']]
-                    <=>
-                    [$a['major'], $a['minor']]
-    );
-
-    return $versions[0]['version'];
-}
-
-
-function nextVersion(
-        ?string $currentVersion,
-        string $increment
-): string {
-    if ($currentVersion === null) {
-        return $increment === 'major'
-                ? 'v1.0'
-                : 'v0.1';
-    }
-
-    if (!preg_match(
-            '/^v(\d+)\.(\d+)$/',
-            $currentVersion,
-            $matches
-    )) {
-        throw new RuntimeException(
-                "Invalid current version: {$currentVersion}"
-        );
-    }
-
-    $major = (int) $matches[1];
-    $minor = (int) $matches[2];
-
-    if ($increment === 'major') {
-        return sprintf('v%d.0', $major + 1);
-    }
-
-    return sprintf('v%d.%d', $major, $minor + 1);
 }
 
 

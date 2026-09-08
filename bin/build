@@ -1,0 +1,109 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+$root = dirname(__DIR__);
+
+require_once $root . '/src/Release/ReleaseRepository.php';
+
+$releases = new ReleaseRepository(
+    $root . '/badges/releases'
+);
+
+$cdnBaseUrl = rtrim(
+    getenv('CDN_BASE_URL') ?: 'https://cdn.noafd-badge.de',
+    '/'
+);
+
+$registry = require "{$root}/badges/registry.php";
+
+$badges = [];
+
+
+foreach ($registry as $id => $definition) {
+    $version = $releases->latest($id);
+
+    if ($version === null) {
+        // Badge ist noch Work in Progress.
+        continue;
+    }
+
+    $releaseDir = $releases->path(
+        $id,
+        $version
+    );
+
+    if (!is_file($releaseDir . '/badge.svg')) {
+        throw new RuntimeException(
+            "Missing SVG for release {$id}/{$version}"
+        );
+    }
+
+    $baseUrl = sprintf(
+        '%s/%s/%s',
+        $cdnBaseUrl,
+        $id,
+        $version
+    );
+
+    $svg = $baseUrl . '/badge.svg';
+
+    $badges[] = [
+        ...$definition,
+
+        'id'      => $id,
+        'version' => $version,
+
+        'cdnSvg'  => $svg,
+        'cdnPng'  => $baseUrl . '/badge-600.png',
+        'cdnWebp' => $baseUrl . '/badge-600.webp',
+
+        'embed' => sprintf(
+            '<img src="%s" alt="%s">',
+            $svg,
+            htmlspecialchars(
+                $definition['alt'],
+                ENT_QUOTES
+            )
+        ),
+    ];
+}
+
+
+ob_start();
+
+require "{$root}/src/templates/home.php";
+
+$content = ob_get_clean();
+
+$title = 'NoAfD Badge – Haltung sichtbar machen';
+
+ob_start();
+
+require "{$root}/src/templates/layout.php";
+
+$html = ob_get_clean();
+
+$dist = "{$root}/dist";
+
+if (!is_dir($dist)) {
+    mkdir($dist, 0775, true);
+}
+
+file_put_contents("{$dist}/index.html", $html);
+
+@mkdir("{$dist}/assets/css", 0775, true);
+@mkdir("{$dist}/assets/js", 0775, true);
+
+copy(
+    "{$root}/src/assets/css/main.css",
+    "{$dist}/assets/css/main.css"
+);
+
+copy(
+    "{$root}/src/assets/js/main.js",
+    "{$dist}/assets/js/main.js"
+);
+
+echo "Site built.\n";
