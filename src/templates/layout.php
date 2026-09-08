@@ -17,10 +17,17 @@
     <a class="brand" href="/">NoAfD Badge</a>
 
     <nav>
-        <a href="#badges">Badges</a>
-        <a href="#about">Über das Projekt</a>
-        <a href="#howto">Benutzung</a>
+<?php if ($isHome): ?>
+        <a href="/#badges">Badges</a>
+        <a href="/#about">Über das Projekt</a>
+        <a href="/#howto">Benutzung</a>
+<?php else: ?>
+        <a href="/#badges">Badges</a>
+        <a href="/projekt">Über das Projekt</a>
+        <a href="/platzhalter">Platzhalter</a>
+<?php endif; ?>
     </nav>
+
 </header>
 
 <main>
@@ -28,8 +35,13 @@
 </main>
 
 <footer class="site-footer">
-    <span>Unabhängige Initiative.</span>
-    <span>Kein Tracking. Keine Cookies.</span>
+    <span>Unabhängige Initiative. Kein Tracking. Keine Cookies.</span>
+    <span>
+        <a href="/impressum">Impressum</a>
+        .
+        <a href="/datenschutz">Datenschutz</a>
+
+    </span>
 </footer>
 
 </body>

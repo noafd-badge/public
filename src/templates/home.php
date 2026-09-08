@@ -13,7 +13,7 @@
         Signaturen und Print.
     </p>
 
-    <a href="#badges" class="button">Badges ansehen</a>
+    <a href="/#badges" class="button">Badges ansehen</a>
 </section>
 
 
@@ -81,6 +81,8 @@
     <p class="eyebrow">Grundsatz</p>
 
     <?= $staticContent['about'] ?>
+
+    <a class="button" href="/projekt">Mehr Details</a>
 </section>
 
 <section class="about" id="howto">

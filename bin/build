@@ -7,6 +7,8 @@ $root = dirname(__DIR__);
 
 require_once $root . '/vendor/autoload.php';
 
+require_once $root . '/src/Helper/helper.php';
+
 require_once $root . '/src/Release/ReleaseRepository.php';
 require_once $root . '/src/Content/MarkdownRenderer.php';
 require_once $root . '/src/Content/ContentLoader.php';
@@ -32,6 +34,12 @@ if (!$cdnBaseUrl) {
     throw new RuntimeException(
             'CDN_BASE_URL is required.'
     );
+}
+
+$dist = "{$root}/dist";
+clearDirectory($dist);
+if (!is_dir($dist)) {
+    mkdir($dist, 0775, true);
 }
 
 
@@ -102,6 +110,8 @@ $title = 'NoAfD Badge – Haltung sichtbar machen';
 
 ob_start();
 
+$isHome = true;
+
 require "{$root}/src/templates/layout.php";
 
 $html = ob_get_clean();
@@ -113,6 +123,49 @@ if (!is_dir($dist)) {
 }
 
 file_put_contents("{$dist}/index.html", $html);
+
+
+$pages = require $root . '/src/data/pages.php';
+
+foreach ($pages as $slug => $definition) {
+
+    $page = [
+            ...$definition,
+            'html' => $contentLoader->load(
+                    $definition['content']
+            ),
+    ];
+
+    ob_start();
+
+    require $root . '/src/templates/page.php';
+
+    $content = ob_get_clean();
+
+    $title = sprintf(
+            '%s – NoAfD Badge',
+            $definition['title']
+    );
+
+    ob_start();
+
+    $isHome = false;
+
+    require $root . '/src/templates/layout.php';
+
+    $html = ob_get_clean();
+
+    $target = $dist . '/' . $slug;
+
+    if (!is_dir($target)) {
+        mkdir($target, 0775, true);
+    }
+
+    file_put_contents(
+            $target . '/index.html',
+            $html
+    );
+}
 
 @mkdir("{$dist}/assets/css", 0775, true);
 @mkdir("{$dist}/assets/js", 0775, true);

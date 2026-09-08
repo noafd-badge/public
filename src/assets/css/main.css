@@ -37,7 +37,8 @@ a {
 .site-footer,
 .hero,
 .badges,
-.about {
+.about,
+.page {
     width: min(1180px, calc(100% - 48px));
     margin-inline: auto;
 }
@@ -214,6 +215,36 @@ nav a {
     color: var(--muted);
     border-top: 1px solid var(--line);
     font-size: .85rem;
+}
+
+.page {
+    padding: 80px 0 120px;
+}
+
+.page-header {
+    margin-bottom: 48px;
+}
+
+.page-header h1 {
+    margin: 0;
+    font-size: clamp(3rem, 7vw, 6rem);
+    line-height: .95;
+    letter-spacing: -.05em;
+}
+
+.page-content {
+    max-width: 760px;
+    font-size: 1.08rem;
+    line-height: 1.7;
+}
+
+.page-content h2,
+.page-content h3 {
+    margin-top: 2.5em;
+}
+
+.page-content p {
+    margin: 0 0 1.4em;
 }
 
 @media (max-width: 760px) {
