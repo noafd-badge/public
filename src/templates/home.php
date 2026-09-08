@@ -80,28 +80,11 @@
 <section class="about" id="about">
     <p class="eyebrow">Grundsatz</p>
 
-    <h2>
-        Keine versteckte Kommunikation.
-    </h2>
-
-    <p>
-        Die Badges setzen keine Cookies, laden keine externen Ressourcen
-        nach und erstellen keine Nutzerprofile. Wer ein Badge selbst hostet,
-        hat keinerlei technische Verbindung zu unserer Infrastruktur.
-    </p>
+    <?= $staticContent['about'] ?>
 </section>
-
 
 <section class="about" id="howto">
     <p class="eyebrow">Benutzung</p>
 
-    <h2>
-        Einfach Haltung zeigen.
-    </h2>
-
-    <p>
-        Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam
-        nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat,
-        sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.
-    </p>
+    <?= $staticContent['howto'] ?>
 </section>

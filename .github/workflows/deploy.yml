@@ -42,6 +42,8 @@ jobs:
             cd /srv/noafd/public
 
             git pull --ff-only origin main
+          
+            composer install --no-dev --no-interaction --prefer-dist --no-progress
 
             CDN_BASE_URL=https://cdn.noafd-badge.de \
               php bin/build

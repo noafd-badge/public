@@ -5,16 +5,37 @@ declare(strict_types=1);
 
 $root = dirname(__DIR__);
 
+require_once $root . '/vendor/autoload.php';
+
 require_once $root . '/src/Release/ReleaseRepository.php';
+require_once $root . '/src/Content/MarkdownRenderer.php';
+require_once $root . '/src/Content/ContentLoader.php';
 
 $releases = new ReleaseRepository(
     $root . '/badges/releases'
 );
 
-$cdnBaseUrl = rtrim(
-    getenv('CDN_BASE_URL') ?: 'https://cdn.noafd-badge.de',
-    '/'
+$contentLoader = new ContentLoader(
+        $root . '/content',
+        new MarkdownRenderer(),
 );
+
+$staticContent = [
+        'about' => $contentLoader->load('home/about'),
+        'howto' => $contentLoader->load('home/howto'),
+];
+
+
+$cdnBaseUrl = getenv('CDN_BASE_URL');
+
+if (!$cdnBaseUrl) {
+    throw new RuntimeException(
+            'CDN_BASE_URL is required.'
+    );
+}
+
+
+$cdnBaseUrl = rtrim($cdnBaseUrl, '/');
 
 $registry = require "{$root}/badges/registry.php";
 
