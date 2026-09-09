@@ -1,0 +1,63 @@
+name: Release badge
+
+on:
+  workflow_dispatch:
+    inputs:
+      badge:
+        description: Badge ID
+        required: true
+        type: string
+
+      increment:
+        description: Version increment
+        required: true
+        default: minor
+        type: choice
+        options:
+          - minor
+          - major
+
+permissions:
+  contents: write
+
+concurrency:
+  group: badge-release-${{ inputs.badge }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Install rendering dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y php-cli php-imagick imagemagick
+
+      - name: Release badge
+        run: |
+          php bin/release \
+            "${{ inputs.badge }}" \
+            "${{ inputs.increment }}"
+
+      - name: Commit release
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add badges/releases
+
+          git commit \
+            -m "Release ${{ inputs.badge }} (${{ inputs.increment }})"
+
+          git push origin main
+
+  deploy:
+    needs: release
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit

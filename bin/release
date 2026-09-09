@@ -74,22 +74,6 @@ try {
     }
 
     echo PHP_EOL;
-    echo "Building website...\n";
-
-    passthru(
-            escapeshellarg(PHP_BINARY)
-            . ' '
-            . escapeshellarg($root . '/bin/build'),
-            $exitCode
-    );
-
-    if ($exitCode !== 0) {
-        throw new RuntimeException(
-                "Website build failed with exit code {$exitCode}."
-        );
-    }
-
-    echo PHP_EOL;
     echo "Released {$badgeId} {$nextVersion} successfully.\n";
 } catch (Throwable $e) {
     removeDirectory($target);
