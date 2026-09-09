@@ -1,0 +1,55 @@
+home:
+  - id: badges
+    title: Badges
+    anchor: badges
+
+  - id: about
+    title: Über das Projekt
+    anchor: about
+    content: home/about
+
+  - id: howto
+    title: Benutzung
+    anchor: howto
+    content: home/howto
+
+main:
+  - id: home
+    title: Home
+    href: /
+
+  - id: badges
+    title: Badges
+    anchor: badges
+
+  - id: about
+    title: Über das Projekt
+    page: about
+
+  - id: infos
+    title: Mehr Infos
+    children:
+      - id: platzhalter
+        title: Platzhalter
+        page: platzhalter
+        content: infos/platzhalter
+
+      - id: transparenz
+        title: Transparenz
+        page: transparenz
+        content: infos/transparenz
+
+  - id: howto
+    title: Benutzung
+    anchor: howto
+
+footer:
+  - id: impressum
+    title: Impressum
+    page: impressum
+    content: footer/impressum
+
+  - id: datenschutz
+    title: Datenschutz
+    page: datenschutz
+    content: footer/datenschutz

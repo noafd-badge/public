@@ -12,6 +12,16 @@ require_once $root . '/src/Helper/helper.php';
 require_once $root . '/src/Release/ReleaseRepository.php';
 require_once $root . '/src/Content/MarkdownRenderer.php';
 require_once $root . '/src/Content/ContentLoader.php';
+require_once $root . '/src/Navigation/SiteStructure.php';
+
+$siteStructure = new SiteStructure(
+        $root . '/content/navigation.yaml'
+);
+
+$homeNavigation = $siteStructure->navigation('home');
+$mainNavigation = $homeNavigation;
+
+$footerNavigation = $siteStructure->navigation('footer');
 
 $releases = new ReleaseRepository(
     $root . '/badges/releases'
@@ -100,6 +110,33 @@ foreach ($registry as $id => $definition) {
 }
 
 
+$renderNavigation = function (
+        array $items
+) use (&$renderNavigation): void {
+    ?>
+    <ul>
+        <?php foreach ($items as $item): ?>
+            <li>
+                <?php if ($item['href'] !== null): ?>
+                    <a href="<?= htmlspecialchars($item['href']) ?>">
+                        <?= htmlspecialchars($item['title']) ?>
+                    </a>
+                <?php else: ?>
+                    <span>
+                        <?= htmlspecialchars($item['title']) ?>
+                    </span>
+                <?php endif; ?>
+
+                <?php if (!empty($item['children'])): ?>
+                    <?php $renderNavigation($item['children']); ?>
+                <?php endif; ?>
+            </li>
+        <?php endforeach; ?>
+    </ul>
+    <?php
+};
+
+
 ob_start();
 
 require "{$root}/src/templates/home.php";
@@ -125,15 +162,17 @@ if (!is_dir($dist)) {
 file_put_contents("{$dist}/index.html", $html);
 
 
-$pages = require $root . '/src/data/pages.php';
+$mainNavigation = $siteStructure->navigation('main');
+
+$pages = $siteStructure->pages();
 
 foreach ($pages as $slug => $definition) {
 
     $page = [
-            ...$definition,
-            'html' => $contentLoader->load(
-                    $definition['content']
-            ),
+        'title' => $definition['title'],
+        'html' => $contentLoader->load(
+            $definition['content']
+        ),
     ];
 
     ob_start();

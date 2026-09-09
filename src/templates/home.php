@@ -82,7 +82,6 @@
 
     <?= $staticContent['about'] ?>
 
-    <a class="button" href="/projekt">Mehr Details</a>
 </section>
 
 <section class="about" id="howto">
