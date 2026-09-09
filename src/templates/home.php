@@ -1,19 +1,14 @@
 <?php declare(strict_types=1); ?>
 
+<nav class="subnav" aria-label="Auf dieser Seite">
+<?php $renderNavigation($homeNavigation); ?>
+</nav>
+
 <section class="hero">
     <p class="eyebrow">Haltung sichtbar machen.</p>
 
-    <h1>
-        Ein Badge.<br>
-        Eine klare Aussage.
-    </h1>
+    <?= $staticContent['intro'] ?>
 
-    <p class="intro">
-        Frei verwendbare Badges für Websites, soziale Medien,
-        Signaturen und Print.
-    </p>
-
-    <a href="/#badges" class="button">Badges ansehen</a>
 </section>
 
 
@@ -84,7 +79,7 @@
 
 </section>
 
-<section class="about" id="howto">
+<section class="howto" id="howto">
     <p class="eyebrow">Benutzung</p>
 
     <?= $staticContent['howto'] ?>

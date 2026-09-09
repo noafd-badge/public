@@ -16,7 +16,7 @@
 <header class="site-header">
     <a class="brand" href="/">NoAfD Badge</a>
 
-    <nav>
+    <nav class="main-nav" aria-label="Hauptnavigation">
         <?php $renderNavigation($mainNavigation); ?>
     </nav>
 
@@ -29,7 +29,9 @@
 <footer class="site-footer">
     <span>Unabhängige Initiative. Kein Tracking. Keine Cookies.</span>
     <span>
+        <nav class="footernav" aria-label="Footernavigation">
         <?php $renderNavigation($footerNavigation); ?>
+        </nav>
     </span>
 </footer>
 

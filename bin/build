@@ -18,9 +18,8 @@ $siteStructure = new SiteStructure(
         $root . '/content/navigation.yaml'
 );
 
+$mainNavigation = $siteStructure->navigation('main');
 $homeNavigation = $siteStructure->navigation('home');
-$mainNavigation = $homeNavigation;
-
 $footerNavigation = $siteStructure->navigation('footer');
 
 $releases = new ReleaseRepository(
@@ -33,6 +32,7 @@ $contentLoader = new ContentLoader(
 );
 
 $staticContent = [
+        'intro' => $contentLoader->load('home/intro'),
         'about' => $contentLoader->load('home/about'),
         'howto' => $contentLoader->load('home/howto'),
 ];
@@ -161,8 +161,6 @@ if (!is_dir($dist)) {
 
 file_put_contents("{$dist}/index.html", $html);
 
-
-$mainNavigation = $siteStructure->navigation('main');
 
 $pages = $siteStructure->pages();
 
